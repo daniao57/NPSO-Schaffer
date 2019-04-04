@@ -20,7 +20,7 @@
 #define C1  0.3                 //参数
 #define C2  0.6                 //参数
 #define RAND01 (rand() % 32768 / 32768.0)
-double _res[P_NUM][2];
+double _pos[P_NUM][2];
 double _pbest[P_NUM][2];
 double _fitness[P_NUM];
 int _gbestIndex;
@@ -32,15 +32,15 @@ double calFitness(double res[2]) {
     return fitness;
 }
 //变异
-void mutate(double res[2]) {
+void mutate(double p[2]) {
     double l = RAND01 * 5;
     for (int i = 0; i < 2; i++) {
-        res[i] += RAND01 * l * 2 - l;
-        if (res[i] > RANGE) {
-            res[i] = RANGE;
+        p[i] += RAND01 * l * 2 - l;
+        if (p[i] > RANGE) {
+            p[i] = RANGE;
         }
-        if (res[i] < -RANGE) {
-            res[i] = -RANGE;
+        if (p[i] < -RANGE) {
+            p[i] = -RANGE;
         }
     }
 }
@@ -49,11 +49,11 @@ void NPSO() {
     for (int i = 0; i < P_NUM; i++) {
         int r = RAND01;
         if (r < C1) {
-            memcpy(_res[i], _pbest[_gbestIndex], sizeof(double) * 2);
+            memcpy(_pos[i], _pbest[_gbestIndex], sizeof(double) * 2);
         } else if (r < C2) {
-            memcpy(_res[i], _pbest[i], sizeof(double) * 2);
+            memcpy(_pos[i], _pbest[i], sizeof(double) * 2);
         }
-        mutate(_res[i]);
+        mutate(_pos[i]);
     }
 }
 //初始化粒子
@@ -61,21 +61,21 @@ void initRes() {
     _gbestIndex = 0;
     for (int i = 0; i < P_NUM; i++) {
         _fitness[i] = -10000;
-        _res[i][0] = RANGE * RAND01 * 2 - RANGE;
-        _res[i][1] = RANGE * RAND01 * 2 - RANGE;
+        _pos[i][0] = RANGE * RAND01 * 2 - RANGE;
+        _pos[i][1] = RANGE * RAND01 * 2 - RANGE;
     }
-    memcpy(_pbest, _res, sizeof(double) * P_NUM * 2);
+    memcpy(_pbest, _pos, sizeof(double) * P_NUM * 2);
 }
 //更新函数
 void updateFitness() {
     for (int i = 0; i < P_NUM; i++) {
-        double fitness = calFitness(_res[i]);
+        double fitness = calFitness(_pos[i]);
         if (fitness > _fitness[i]) {
             if (fitness > _fitness[_gbestIndex]) {
                 _gbestIndex = i;
             }
             _fitness[i] = fitness;
-            memcpy(_pbest[i], _res[i], sizeof(double) * 2);
+            memcpy(_pbest[i], _pos[i], sizeof(double) * 2);
         }
     }
 }
