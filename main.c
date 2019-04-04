@@ -15,6 +15,7 @@
 #include <string.h>
 #define P_NUM 200               //粒子个数
 #define RANGE 10                //变量定义域
+#define TEST_NUM 10             //试验次数
 #define MAX_ITERATION 1000      //最大迭代次数
 #define C1  0.3                 //参数
 #define C2  0.6                 //参数
@@ -80,15 +81,37 @@ void updateFitness() {
 }
 int main(int argc, const char * argv[]) {
     srand((unsigned)time(NULL));
-    initRes();
-    updateFitness();
-    for (int i = 0; i < MAX_ITERATION; i++) {
-        NPSO();
+    int loopNum[TEST_NUM];
+    double bestFit[TEST_NUM];
+    double timeUsed[TEST_NUM];
+    for(int n = 0; n < 10; n++) {
+        struct timeval startTime;
+        gettimeofday(&startTime, NULL);
+        initRes();
         updateFitness();
-        printf("%d: %f (%f, %f)\n",i + 1, _fitness[_gbestIndex], _pbest[_gbestIndex][0], _pbest[_gbestIndex][1]);
-        if (_fitness[_gbestIndex] > 0.9999) {
-            break;
+        for (int i = 0; i < MAX_ITERATION; i++) {
+            NPSO();
+            updateFitness();
+            if (_fitness[_gbestIndex] > 0.9999) {
+                bestFit[n] = _fitness[_gbestIndex];
+                struct timeval endTime;
+                gettimeofday(&endTime, NULL);
+                double runningTime = endTime.tv_sec - startTime.tv_sec + (endTime.tv_usec - startTime.tv_usec) / 1000000.0;
+                printf("%d\t%d\t%.6f\t%.6lf秒\n",  n + 1, i + 1, bestFit[n], runningTime);
+                timeUsed[n] = runningTime;
+                loopNum[n] = i + 1;
+                break;
+            }
         }
     }
+    double avgLoopNum = 0;
+    double avgBestFit = 0;
+    double avgTimeUsed = 0;
+    for (int t = 0; t < TEST_NUM; t++) {
+        avgLoopNum += loopNum[t] * 1.0 / TEST_NUM;
+        avgBestFit += bestFit[t] / TEST_NUM;
+        avgTimeUsed += timeUsed[t] / TEST_NUM;
+    }
+    printf("平均\t%.1f\t%.6f\t%.6lf秒\n",  avgLoopNum, avgBestFit,  avgTimeUsed);
     return 0;
 }
